@@ -45,7 +45,7 @@ export function ScoreCard({ score }: { score: FundamentalScore | null }) {
             Graded against fixed thresholds — no AI involved, so the same numbers always give the same score.
           </p>
         </div>
-        <Link to="/learn#how-it-works" className="text-xs text-brand-400 hover:text-brand-300 hover:underline">
+        <Link to="/learn/metrics#how-it-works" className="text-xs text-brand-400 hover:text-brand-300 hover:underline">
           How is this calculated?
         </Link>
       </div>

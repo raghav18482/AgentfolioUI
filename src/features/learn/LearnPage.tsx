@@ -1,10 +1,12 @@
 import { clsx } from 'clsx'
-import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageMeta } from '@/components/layout/PageMeta'
 import { Alert } from '@/components/ui/Alert'
 import { Card } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { useHashTarget } from '@/hooks/useHashTarget'
 import { useGlossary } from '@/hooks/useResearch'
 import { metricsForPillar, PILLAR_ORDER } from '@/lib/glossary'
 import type { Glossary } from '@/types'
@@ -29,11 +31,21 @@ export function LearnPage() {
 
   return (
     <div className="mx-auto max-w-[1080px] space-y-10 px-4 py-8 sm:px-6">
-      <PageHeader
-        kicker="Plain-English guide"
-        title="What the numbers actually mean"
-        sub="Every metric on the Research page explained without jargon — what it measures, what counts as a good number, and what it quietly hides. None of this page is written by AI: the thresholds here are the exact ones used to score your stocks."
+      <PageMeta
+        title="Metrics guide"
+        description="Every stock metric on Agentfolio's Research page explained in plain English, with the exact thresholds used to score stocks."
       />
+      <div className="space-y-4">
+        <Link to="/learn" className="inline-flex items-center gap-1.5 text-sm text-brand-400 hover:text-brand-300">
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Academy
+        </Link>
+        <PageHeader
+          kicker="Plain-English guide"
+          title="What the numbers actually mean"
+          sub="Every metric on the Research page explained without jargon — what it measures, what counts as a good number, and what it quietly hides. None of this page is written by AI: the thresholds here are the exact ones used to score your stocks."
+        />
+      </div>
 
       {isPending ? (
         <div className="space-y-6" aria-busy>
@@ -64,31 +76,6 @@ export function LearnPage() {
       )}
     </div>
   )
-}
-
-/**
- * The element id in the URL hash, once the content that holds it has rendered —
- * outlined for a moment after scrolling to it. A Research popover links here with
- * `/learn#pe_ratio`.
- */
-function useHashTarget(ready: boolean): string | null {
-  const { hash } = useLocation()
-  // The hash whose outline has already faded, so the highlight is derived from the
-  // URL rather than set from inside the effect.
-  const [faded, setFaded] = useState<string | null>(null)
-  const id = ready && hash ? decodeURIComponent(hash.slice(1)) : null
-
-  useEffect(() => {
-    if (!id) return
-    const el = document.getElementById(id)
-    if (!el) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })
-    const timer = setTimeout(() => setFaded(id), 2400)
-    return () => clearTimeout(timer)
-  }, [id])
-
-  return id && faded !== id ? id : null
 }
 
 function Intro({ intro }: { intro: Glossary['intro'] }) {

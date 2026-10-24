@@ -88,7 +88,7 @@ function MetricInfo({ metricKey, verdict }: { metricKey: string; verdict?: Score
             </p>
           )}
           {meta.watch_out && <InfoSection heading="Watch out">{meta.watch_out}</InfoSection>}
-          <Link to={`/learn#${metricKey}`} className="inline-block text-brand-400 hover:underline">
+          <Link to={`/learn/metrics#${metricKey}`} className="inline-block text-brand-400 hover:underline">
             Read more in the guide →
           </Link>
         </>
