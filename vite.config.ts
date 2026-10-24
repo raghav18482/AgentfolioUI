@@ -10,8 +10,8 @@ const SPA_BASE = '/app/'
 
 export default defineConfig(({ command, mode }) => {
   /**
-   * The FastAPI app the dev server forwards to. Set `AGENTFOLIO_BACKEND` in the shell or in
-   * `.env.local` to point at another backend, e.g. the hosted one.
+   * The FastAPI app the dev server forwards to. `npm run dev` reads `.env.development` (local
+   * backend), `npm run prod` reads `.env.prod` (hosted backend); a shell variable still wins.
    */
   const env = loadEnv(mode, import.meta.dirname, '')
   const BACKEND = env.AGENTFOLIO_BACKEND || 'http://localhost:8000'
@@ -23,7 +23,8 @@ export default defineConfig(({ command, mode }) => {
   const proxy = { target: BACKEND, changeOrigin: true, cookieDomainRewrite: 'localhost' }
 
   return {
-    base: command === 'build' ? SPA_BASE : '/',
+    // Vercel serves the build from the site root, not under FastAPI's mount path (it sets VERCEL=1).
+    base: command === 'build' && !process.env.VERCEL ? SPA_BASE : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
