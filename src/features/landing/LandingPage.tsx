@@ -12,6 +12,7 @@ import {
   LineChart,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { FeedbackForm } from './FeedbackForm'
 
 const features = [
   {
@@ -163,6 +164,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <FeedbackForm />
 
       {/* Premium Features */}
       <section className="px-4 py-20 sm:py-28">
