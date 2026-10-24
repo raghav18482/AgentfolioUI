@@ -81,3 +81,80 @@ body {
 .animate-slide-up {
   animation: slide-up 0.6s ease-out both;
 }
+
+/* ── Landing page decoration ─────────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes aurora {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.08); }
+  66% { transform: translate(-30px, 20px) scale(0.95); }
+}
+
+@keyframes draw-line {
+  from { stroke-dashoffset: 600; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes shimmer {
+  from { background-position: 0% 50%; }
+  to { background-position: 200% 50%; }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-aurora {
+  animation: aurora 18s ease-in-out infinite;
+}
+
+.animate-draw-line {
+  stroke-dasharray: 600;
+  animation: draw-line 2.2s ease-out 0.4s both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Brand gradient text that slowly drifts through the logo colours. */
+.text-shimmer {
+  background: linear-gradient(90deg, #34d399, #38bdf8, #818cf8, #38bdf8, #34d399);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 8s linear infinite;
+}
+
+/* Faint grid that fades out toward the edges. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* A 1px gradient border on a dark card: the card paints its own background, the border shows through padding-box. */
+.gradient-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-surface-900), var(--color-surface-900)) padding-box,
+    linear-gradient(135deg, rgb(16 185 129 / 0.5), rgb(14 165 233 / 0.25), rgb(99 102 241 / 0.5)) border-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-aurora,
+  .animate-pulse-glow,
+  .text-shimmer,
+  .animate-draw-line {
+    animation: none;
+  }
+}

@@ -3,7 +3,6 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { clsx } from 'clsx'
 import {
   ArrowLeftRight,
-  BarChart3,
   BookOpen,
   Bot,
   CandlestickChart,
@@ -22,6 +21,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useLogout, useSession } from '@/hooks/useSession'
+import { Logo } from '@/components/ui/Logo'
 
 interface NavItem {
   path: string
@@ -84,11 +84,8 @@ export function Navbar() {
       className="sticky top-0 z-50 border-b border-surface-800/80 bg-surface-950/80 backdrop-blur-xl"
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to={authenticated ? '/dashboard' : '/'} className="flex shrink-0 items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600">
-            <BarChart3 className="h-4 w-4 text-white" aria-hidden />
-          </span>
-          <span className="font-display text-lg font-semibold text-white">Agentfolio</span>
+        <Link to={authenticated ? '/dashboard' : '/'} className="shrink-0" aria-label="Agentfolio home">
+          <Logo />
         </Link>
 
         {/* Nothing until the session resolves, so the wrong set never flashes. */}
