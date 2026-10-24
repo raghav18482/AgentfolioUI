@@ -40,6 +40,10 @@ export default defineConfig(({ command, mode }) => {
         '/static': proxy,
         // The MCP endpoint the Connect page tells users to paste, so it works under dev too.
         '/mcp': proxy,
+        // OAuth for MCP clients: the consent page and the discovery documents live on FastAPI.
+        '/oauth': proxy,
+        '/.well-known/oauth-authorization-server': proxy,
+        '/.well-known/oauth-protected-resource': proxy,
       },
     },
   }

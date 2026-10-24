@@ -5,57 +5,34 @@ import { Card } from '@/components/ui/Card'
 import { CodeBlock } from '@/components/ui/CodeBlock'
 import { InlineCode } from '@/components/ui/InlineCode'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { useCurrentUser } from '@/hooks/useSession'
 import { LINKS } from '@/lib/links'
 import { GuideNote } from './GuideNote'
 import { GuideTable } from './GuideTable'
+import { AccessTokens, ConnectedApps } from './McpAccessPanels'
 import { StepCard, StepHeading } from './StepCard'
 import { StepItem, StepList } from './StepList'
 
-/** Every tool the MCP server exposes once a client is connected and logged in. */
+/** Every tool the MCP server exposes. All of them only read. */
 const MCP_TOOLS: Array<[string, string]> = [
-  ['login', 'Authenticate with Angel One (must call first)'],
-  ['logout', 'Discard session credentials from memory'],
   ['portfolio_summary', 'Overall portfolio: invested, current value, P&L'],
-  ['get_holdings', 'All stock holdings with P&L per stock'],
+  ['get_holdings / get_all_holdings', 'Stock holdings with P&L per stock, and totals'],
   ['get_positions', 'Open intraday / delivery positions'],
   ['get_funds', 'Available cash, margin, and net value'],
-  ['get_order_book', "Today's orders and their status"],
-  ['get_trade_book', 'Executed trades for today'],
-  ['search_scrip', 'Search stocks by name or symbol'],
-  ['get_ltp', 'Last traded price for a stock'],
-  ['get_candle_data', 'Historical OHLC candle data'],
-  ['place_order', 'Place a buy/sell order (real money!)'],
-  ['modify_order', 'Modify an existing open order'],
-  ['cancel_order', 'Cancel an open order'],
+  ['get_order_book / get_trade_book', "Today's orders and executed trades (history only)"],
+  ['get_profile', 'Account profile'],
+  ['search_scrip / get_ltp / get_market_depth', 'Find instruments, last price, order-book depth'],
+  ['get_candle_data / get_stock_history', 'Historical OHLC data'],
+  ['calculate_pnl', 'P&L for one symbol'],
+  ['predict_price_direction', 'Technical-signal outlook (not advice)'],
 ]
 
-const LOGIN_PROMPT = `Log in to my Angel One account with these credentials:
-- API Key: YOUR_API_KEY
-- Client ID: YOUR_CLIENT_ID
-- Password: YOUR_PIN
-- TOTP Secret: YOUR_TOTP_SECRET`
+const TOKEN_PLACEHOLDER = 'mfm_your_token_here'
 
 const LOCAL_SETUP = `git clone ${LINKS.sourceRepo}
 cd MyFinancesMCP
 pip install -r requirements.txt
 python main.py`
-
-const LOCAL_PYTHON_PATH = '/full/path/to/MyFinancesMCP/mcp_server.py'
-
-const LOCAL_CLAUDE_CONFIG = `{
-  "mcpServers": {
-    "angelone-portfolio": {
-      "command": "python3",
-      "args": ["${LOCAL_PYTHON_PATH}"],
-      "env": {
-        "ANGELONE_API_KEY": "YOUR_API_KEY",
-        "ANGELONE_CLIENT_ID": "YOUR_CLIENT_ID",
-        "ANGELONE_PASSWORD": "YOUR_PIN",
-        "ANGELONE_TOTP_SECRET": "YOUR_TOTP_SECRET"
-      }
-    }
-  }
-}`
 
 function Checklist({ items }: { items: ReactNode[] }) {
   return (
@@ -73,16 +50,33 @@ function Checklist({ items }: { items: ReactNode[] }) {
 const strong = 'text-white'
 const link = 'font-semibold text-brand-400 hover:text-brand-300'
 
+function SignInPrompt({ to }: { to: string }) {
+  return (
+    <p>
+      <Link to="/login" className={link}>
+        Log in
+      </Link>{' '}
+      to {to}.
+    </p>
+  )
+}
+
 export function ConnectMcpPage() {
+  const user = useCurrentUser()
   // The page and the MCP endpoint share an origin, and the browser's view of it
   // is right behind a TLS-terminating proxy, where the server's own is not.
-  const sseUrl = `${window.location.origin}/mcp/sse`
+  const origin = window.location.origin
+  const mcpUrl = `${origin}/mcp/mcp`
 
-  const claudeConfig = `{
+  const claudeDesktopConfig = `{
   "mcpServers": {
     "angelone-portfolio": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "${sseUrl}"]
+      "args": [
+        "-y", "mcp-remote", "${mcpUrl}",
+        "--header", "Authorization:\${AUTH_HEADER}"
+      ],
+      "env": { "AUTH_HEADER": "Bearer ${TOKEN_PLACEHOLDER}" }
     }
   }
 }`
@@ -90,203 +84,150 @@ export function ConnectMcpPage() {
   const cursorConfig = `{
   "mcpServers": {
     "angelone-portfolio": {
-      "url": "${sseUrl}"
+      "url": "${mcpUrl}",
+      "headers": { "Authorization": "Bearer ${TOKEN_PLACEHOLDER}" }
     }
   }
 }`
+
+  const claudeCodeCommand = `claude mcp add --transport http angelone-portfolio ${mcpUrl}`
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
       <PageHeader
         title="Connect Agentfolio to Your AI Assistant"
-        sub="Follow the steps below to connect this MCP server to Claude Desktop, ChatGPT, Cursor, or any MCP-compatible client. Once connected, you can track your Angel One portfolio and even place trades through your AI assistant."
+        sub="Connect this MCP server to Claude, Claude Code, Cursor, or any MCP client. Your assistant can then read your Angel One portfolio and market data and help you analyse it. It is read-only: it cannot place, modify or cancel orders, and any trade idea it gives you is hypothetical."
       />
 
       <GuideNote>
-        <strong className={strong}>Don't want to set up MCP?</strong> You can get AI-powered portfolio insights
-        directly from the{' '}
+        <strong className={strong}>Don't want to set up MCP?</strong> The{' '}
         <Link to="/login" className={link}>
           web dashboard
         </Link>{' '}
-        &mdash; just log in and add your OpenRouter API key. No MCP configuration needed.
+        has the same read-only assistant built in. No MCP configuration needed.
       </GuideNote>
 
-      <Card>
-        <h2 className="mb-4 font-display text-lg font-semibold text-white">Before You Start</h2>
+      <StepCard step={1} title="Claude: add a custom connector (no token needed)">
+        <p>Works in claude.ai, and in the Claude desktop and mobile apps once added.</p>
+        <StepList>
+          <StepItem bullet="a">
+            In Claude, open <strong className={strong}>Settings &rarr; Connectors &rarr; Add custom connector</strong>.
+          </StepItem>
+          <StepItem bullet="b">
+            Paste this URL and choose <strong className={strong}>Add</strong>:
+          </StepItem>
+        </StepList>
+        <CodeBlock label="Connector URL" code={mcpUrl} highlight={[mcpUrl]} />
+        <StepList>
+          <StepItem bullet="c">
+            Choose <strong className={strong}>Connect</strong>. A sign-in page from this site opens: enter your
+            WhatsApp number and app password and approve{' '}
+            <strong className={strong}>read-only portfolio access</strong>.
+          </StepItem>
+        </StepList>
+        <p>
+          Claude never sees your app password or Angel One credentials. It receives a read-only token (
+          <InlineCode>portfolio:read</InlineCode>) that renews itself. You can disconnect from Claude or here at any
+          time.
+        </p>
+
+        <StepHeading>Connected apps</StepHeading>
+        {user ? <ConnectedApps /> : <SignInPrompt to="see and disconnect connected apps" />}
+      </StepCard>
+
+      <StepCard step={2} title="Other clients: create a personal access token">
+        <p>
+          Clients that send an HTTP header instead of signing in (Cursor, <InlineCode>mcp-remote</InlineCode>,
+          scripts) identify you with a <strong className={strong}>personal access token</strong> that you create here
+          and paste into the client. You never type Angel One credentials into an AI chat.
+        </p>
         <Checklist
           items={[
             <>
-              Your Angel One <strong className={strong}>API Key</strong>,{' '}
-              <strong className={strong}>Client ID</strong>, <strong className={strong}>PIN</strong>, and{' '}
-              <strong className={strong}>TOTP Secret</strong> &mdash;{' '}
-              <Link to="/setup" className={link}>
-                learn how to generate them
-              </Link>
+              Shown <strong className={strong}>once</strong>. We store only a hash of it.
             </>,
+            <>Expires after 30 days by default (up to 90), and you can revoke it here at any time.</>,
             <>
-              <strong className={strong}>Node.js</strong> installed (required for Claude Desktop &mdash;{' '}
-              <a href={LINKS.nodeJs} target="_blank" rel="noopener noreferrer" className={link}>
-                download here
-              </a>
-              ). Not needed for ChatGPT or Cursor.
+              Grants <InlineCode>portfolio:read</InlineCode> only. Anyone holding it can read your portfolio, so
+              treat it like a password.
             </>,
           ]}
         />
-      </Card>
+        {user ? <AccessTokens /> : <SignInPrompt to="create a token" />}
+      </StepCard>
 
-      <StepCard step={1} title="Claude Desktop">
-        <StepHeading>Find your config file</StepHeading>
-        <p>Open the Claude Desktop config file at:</p>
+      <StepCard step={3} title="Claude Code">
+        <p>
+          Add the server, then run <InlineCode>/mcp</InlineCode> in Claude Code and choose{' '}
+          <strong className={strong}>Authenticate</strong>: it opens the same sign-in page as the connector.
+        </p>
+        <CodeBlock label="Terminal" code={claudeCodeCommand} highlight={[mcpUrl]} />
+        <p>
+          Prefer a token? Add <InlineCode>{`--header "Authorization: Bearer ${TOKEN_PLACEHOLDER}"`}</InlineCode> to
+          the command instead.
+        </p>
+      </StepCard>
+
+      <StepCard step={4} title="Claude Desktop with a token (mcp-remote)">
+        <p>
+          The connector in step 1 is the easiest route. To use a token instead, add this to{' '}
+          <InlineCode>claude_desktop_config.json</InlineCode> (needs{' '}
+          <a href={LINKS.nodeJs} target="_blank" rel="noopener noreferrer" className={link}>
+            Node.js
+          </a>
+          ). The token goes in an environment variable, not on the command line:
+        </p>
         <CodeBlock label="macOS" code="~/Library/Application Support/Claude/claude_desktop_config.json" />
         <CodeBlock label="Windows" code="%APPDATA%\Claude\claude_desktop_config.json" />
-
-        <StepHeading>Add the MCP server</StepHeading>
-        <p>
-          Add the following to the <InlineCode>mcpServers</InlineCode> object in the config file:
-        </p>
-        <CodeBlock label="claude_desktop_config.json" code={claudeConfig} highlight={[sseUrl]} />
-        <GuideNote>
-          <strong className={strong}>Note:</strong> Claude Desktop doesn't support SSE natively, so we use{' '}
-          <InlineCode>mcp-remote</InlineCode> as a bridge. It is installed automatically via{' '}
-          <InlineCode>npx</InlineCode>.
-        </GuideNote>
-
-        <StepHeading>Restart Claude Desktop</StepHeading>
-        <p>
-          Quit Claude Desktop completely and reopen it. You should see a hammer icon indicating MCP tools are
-          available.
-        </p>
-
-        <StepHeading>Login</StepHeading>
-        <p>In your first message, ask Claude to log in with your credentials:</p>
-        <CodeBlock label="Example prompt" code={LOGIN_PROMPT} />
-        <p>
-          Claude will call the <InlineCode>login</InlineCode> tool, and then you can ask things like{' '}
-          <em>"Show my portfolio summary"</em> or <em>"What are my holdings?"</em>
-        </p>
-      </StepCard>
-
-      <StepCard step={2} title="ChatGPT">
-        <StepHeading>Open Settings</StepHeading>
-        <p>
-          On{' '}
-          <a href={LINKS.chatGpt} target="_blank" rel="noopener noreferrer" className={link}>
-            chatgpt.com
-          </a>
-          , click your profile icon and go to <strong className={strong}>Settings &rarr; Connected apps</strong>.
-        </p>
-
-        <StepHeading>Add an MCP server</StepHeading>
-        <p>
-          Click <strong className={strong}>"Add"</strong> and fill in the following:
-        </p>
-        <StepList>
-          <StepItem bullet="a">
-            <strong className={strong}>Name:</strong> AngelOne Portfolio
-          </StepItem>
-          <StepItem bullet="b">
-            <strong className={strong}>Description:</strong> Angel One portfolio tracker via MCP
-          </StepItem>
-          <StepItem bullet="c">
-            <strong className={strong}>MCP Server URL:</strong>
-          </StepItem>
-        </StepList>
-        <CodeBlock label="MCP Server URL" code={sseUrl} highlight={[sseUrl]} />
-        <StepList>
-          <StepItem bullet="d">
-            <strong className={strong}>Authentication:</strong> select <strong className={strong}>None</strong>
-          </StepItem>
-          <StepItem bullet="e">
-            Check the <strong className={strong}>"I understand and want to continue"</strong> checkbox
-          </StepItem>
-          <StepItem bullet="f">
-            Click <strong className={strong}>Create</strong>
-          </StepItem>
-        </StepList>
-        <GuideNote>
-          <strong className={strong}>Note:</strong> MCP support is available on ChatGPT web (chatgpt.com). No
-          desktop app or Node.js required.
-        </GuideNote>
-
-        <StepHeading>Login &amp; use</StepHeading>
-        <p>
-          Start a new chat and ask ChatGPT to log in with your Angel One credentials, then ask about your
-          portfolio, holdings, or place trades.
-        </p>
-      </StepCard>
-
-      <StepCard step={3} title="Cursor IDE">
-        <StepHeading>Add the MCP config</StepHeading>
-        <p>
-          Create or edit <InlineCode>.cursor/mcp.json</InlineCode> in your project root:
-        </p>
-        <CodeBlock label=".cursor/mcp.json" code={cursorConfig} highlight={[sseUrl]} />
-        <GuideNote>
-          <strong className={strong}>Note:</strong> Cursor supports the <InlineCode>url</InlineCode> field
-          directly &mdash; no bridge needed.
-        </GuideNote>
-
-        <StepHeading>Login &amp; use</StepHeading>
-        <p>
-          Open Cursor's AI chat and ask it to log in with your Angel One credentials, then use any portfolio or
-          trading tool.
-        </p>
-      </StepCard>
-
-      <StepCard step={4} title="Other MCP Clients">
-        <p>Any MCP-compatible client that supports SSE transport can connect using:</p>
-        <CodeBlock label="SSE endpoint" code={sseUrl} />
-        <p>
-          If your client only supports stdio, use <InlineCode>mcp-remote</InlineCode> as a bridge:
-        </p>
-        <CodeBlock label="stdio bridge" code={`npx -y mcp-remote ${sseUrl}`} highlight={[sseUrl]} />
-      </StepCard>
-
-      <StepCard step={5} title="Run Locally (Self-Hosted)">
-        <p>
-          Don't want to use our hosted server? Clone the repo and run everything on your machine &mdash; no data
-          leaves localhost.
-        </p>
-
-        <StepHeading>Clone &amp; install</StepHeading>
-        <CodeBlock label="Terminal" code={LOCAL_SETUP} />
-        <p>
-          The server starts on <InlineCode>http://localhost:8000</InlineCode>. Open it in your browser for the
-          web dashboard, or connect your AI assistant using the local MCP endpoint.
-        </p>
-
-        <StepHeading>Claude Desktop &mdash; direct Python config (no Node.js needed)</StepHeading>
-        <p>
-          When running locally, you can skip <InlineCode>mcp-remote</InlineCode> entirely and point Claude
-          Desktop straight at the Python server:
-        </p>
         <CodeBlock
           label="claude_desktop_config.json"
-          code={LOCAL_CLAUDE_CONFIG}
-          highlight={['python3', LOCAL_PYTHON_PATH]}
+          code={claudeDesktopConfig}
+          highlight={[mcpUrl, TOKEN_PLACEHOLDER]}
         />
-        <GuideNote>
-          <strong className={strong}>Replace</strong> the highlighted paths and credential values with your own.
-          On macOS/Linux you can find the full Python path by running <InlineCode>which python3</InlineCode> in
-          your terminal. This config runs the MCP server as a subprocess of Claude Desktop using stdio transport
-          &mdash; no extra dependencies needed.
-        </GuideNote>
-
-        <StepHeading>Cursor &amp; ChatGPT &mdash; local SSE</StepHeading>
         <p>
-          With <InlineCode>python main.py</InlineCode> running, use the local URL in the configs shown in Steps
-          1&ndash;3 above:
+          Restart Claude Desktop, then ask things like <em>"Show my portfolio summary"</em> or{' '}
+          <em>"How concentrated are my holdings?"</em>
         </p>
-        <CodeBlock label="Local SSE endpoint" code="http://localhost:8000/mcp/sse" />
       </StepCard>
 
-      <StepCard step={6} title="Available Tools">
-        <p>Once connected and logged in, your AI assistant can use these tools:</p>
+      <StepCard step={5} title="Cursor IDE">
+        <p>
+          Create or edit <InlineCode>.cursor/mcp.json</InlineCode>:
+        </p>
+        <CodeBlock label=".cursor/mcp.json" code={cursorConfig} highlight={[mcpUrl, TOKEN_PLACEHOLDER]} />
+        <GuideNote>
+          <strong className={strong}>Keep this file out of git</strong> &mdash; it contains your token.
+        </GuideNote>
+      </StepCard>
+
+      <StepCard step={6} title="Other MCP Clients">
+        <p>
+          Any client that speaks the <strong className={strong}>Streamable HTTP</strong> transport works, either by
+          signing in with OAuth (discovered automatically) or with a token header:
+        </p>
+        <CodeBlock label="Endpoint" code={`URL:    ${mcpUrl}\nHeader: Authorization: Bearer ${TOKEN_PLACEHOLDER}`} />
+        <GuideNote>
+          OAuth clients find the sign-in server at{' '}
+          <InlineCode>{`${origin}/.well-known/oauth-protected-resource/mcp/mcp`}</InlineCode>. The old{' '}
+          <InlineCode>/mcp/sse</InlineCode> endpoint has been removed.
+        </GuideNote>
+      </StepCard>
+
+      <StepCard step={7} title="Run Locally (Self-Hosted)">
+        <CodeBlock label="Terminal" code={LOCAL_SETUP} />
+        <p>
+          Open <InlineCode>http://localhost:8000</InlineCode>, enroll, create a token on the Connect page, and point
+          your client at <InlineCode>http://localhost:8000/mcp/mcp</InlineCode> with the same header.
+        </p>
+      </StepCard>
+
+      <StepCard step={8} title="Available Tools (all read-only)">
         <GuideTable
           caption="MCP tools"
           columns={['Tool', 'Description']}
           rows={MCP_TOOLS.map(([tool, desc]) => [<InlineCode key="tool">{tool}</InlineCode>, desc])}
         />
+        <p>There are no order, login or account-changing tools.</p>
       </StepCard>
 
       <Card>
@@ -294,22 +235,23 @@ export function ConnectMcpPage() {
         <Checklist
           items={[
             <>
-              Credentials you give an MCP client are <strong className={strong}>never stored on disk</strong>{' '}
-              &mdash; they live only in server memory
+              Your Angel One credentials are <strong className={strong}>encrypted at rest</strong> on the server and
+              are never sent to, or typed into, the AI model
             </>,
             <>
-              Sessions <strong className={strong}>auto-expire after 8 hours</strong>
+              The MCP server is <strong className={strong}>read-only</strong>: no tool can place, modify or cancel an
+              order
             </>,
             <>
-              All traffic goes over <strong className={strong}>HTTPS</strong> when deployed (Railway/Render
-              provide TLS)
+              Connector sign-in is <strong className={strong}>OAuth 2.1 with PKCE</strong>; tokens are stored only as
+              hashes and work only for this MCP endpoint
             </>,
             <>
-              Your OpenRouter API key (for dashboard AI insights) is{' '}
-              <strong className={strong}>encrypted client-side</strong> and never stored on the server
+              Each token sees <strong className={strong}>only its owner's</strong> data; revoking it takes effect on
+              the next request
             </>,
             <>
-              You can call <InlineCode>logout</InlineCode> at any time to immediately discard your session
+              All traffic goes over <strong className={strong}>HTTPS</strong> when deployed
             </>,
           ]}
         />

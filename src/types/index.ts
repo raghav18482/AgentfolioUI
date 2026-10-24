@@ -509,3 +509,33 @@ export interface ChatReply {
   approval_result?: string
   thread_id?: number
 }
+
+/** A personal access token for the MCP endpoint (`/api/mcp/tokens`). Never carries the secret. */
+export interface McpToken {
+  id: number
+  name: string
+  /** First characters, for recognising a token, e.g. `mfm_AbC123`. */
+  prefix: string
+  scopes: string[]
+  created_at: string | null
+  expires_at: string | null
+  last_used_at: string | null
+  revoked: boolean
+  active: boolean
+}
+
+/** The one response that ever contains a token's raw value. */
+export interface CreatedMcpToken {
+  token: string
+  token_info: McpToken
+  note: string
+}
+
+/** An app connected through OAuth, e.g. a claude.ai custom connector (`/api/oauth/connections`). */
+export interface OAuthConnection {
+  id: number
+  client_name: string
+  scopes: string[]
+  created_at: string | null
+  last_used_at: string | null
+}
