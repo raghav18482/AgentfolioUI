@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://agentfolio.in/api/:path*" },
-    { "source": "/static/:path*", "destination": "https://agentfolio.in/static/:path*" },
-    { "source": "/mcp/:path*", "destination": "https://agentfolio.in/mcp/:path*" },
+    { "source": "/api/:path*", "destination": "https://myfinancesmcp.onrender.com/api/:path*" },
+    { "source": "/static/:path*", "destination": "https://myfinancesmcp.onrender.com/static/:path*" },
+    { "source": "/mcp/:path*", "destination": "https://myfinancesmcp.onrender.com/mcp/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
