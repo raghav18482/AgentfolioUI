@@ -94,7 +94,7 @@ function FundamentalContent({ symbol, data }: { symbol: string; data: Fundamenta
           <h2 className="text-base font-semibold text-white">Financial Health</h2>
           <p className="mb-2 mt-0.5 text-xs text-surface-200/50">
             New to these? Start with the{' '}
-            <Link to="/learn" className="text-brand-400 hover:underline">
+            <Link to="/learn/metrics" className="text-brand-400 hover:underline">
               metrics guide
             </Link>
             .

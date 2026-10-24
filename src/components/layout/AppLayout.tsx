@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui/Spinner'
 
 /**
  * Start each page at the top, as a full page load would. A URL with a hash
- * (`/learn#how-it-works`) is left alone so the page can scroll to its anchor.
+ * (`/learn/metrics#how-it-works`) is left alone so the page can scroll to its anchor.
  */
 function useScrollToTopOnNavigate() {
   const { pathname, hash } = useLocation()

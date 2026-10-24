@@ -43,6 +43,7 @@ const appNav: NavItem[] = [
 ]
 
 const publicNav: NavItem[] = [
+  { path: '/learn', label: 'Learn', icon: GraduationCap },
   { path: '/setup', label: 'Setup Guide', icon: BookOpen },
   { path: '/connect', label: 'Connect MCP', icon: Plug },
   { path: '/enroll', label: 'Set Up', icon: UserPlus },

@@ -21,6 +21,7 @@ import {
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { LogoMark } from '@/components/ui/Logo'
 import { FeedbackForm } from './FeedbackForm'
+import { LearnTeaser } from './LearnTeaser'
 
 const features = [
   {
@@ -408,6 +409,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <LearnTeaser />
 
       {/* Quote / Manifesto */}
       <section className="px-4 py-20">

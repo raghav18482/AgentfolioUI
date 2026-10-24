@@ -26,6 +26,11 @@ const AgentPage = page(() => import('@/features/agent/AgentPage'), 'AgentPage')
 const NewsPage = page(() => import('@/features/news/NewsPage'), 'NewsPage')
 const ResearchPage = page(() => import('@/features/research/ResearchPage'), 'ResearchPage')
 const LearnPage = page(() => import('@/features/learn/LearnPage'), 'LearnPage')
+const AcademyHomePage = page(() => import('@/features/academy/AcademyHomePage'), 'AcademyHomePage')
+const LessonPage = page(() => import('@/features/academy/LessonPage'), 'LessonPage')
+const GlossaryPage = page(() => import('@/features/academy/GlossaryPage'), 'GlossaryPage')
+const CalculatorsPage = page(() => import('@/features/academy/calculators/CalculatorsPage'), 'CalculatorsPage')
+const TradingLabPage = page(() => import('@/features/academy/tradingLab/TradingLabPage'), 'TradingLabPage')
 const SectorsPage = page(() => import('@/features/sectors/SectorsPage'), 'SectorsPage')
 const TradingPage = page(() => import('@/features/trading/TradingPage'), 'TradingPage')
 const NotFoundPage = page(() => import('@/features/errors/NotFoundPage'), 'NotFoundPage')
@@ -45,6 +50,15 @@ export default function App() {
           </Route>
           <Route path="setup" element={<SetupGuidePage />} />
           <Route path="connect" element={<ConnectMcpPage />} />
+          {/* The Financial Learning Academy is public: no account needed to learn. */}
+          <Route path="learn">
+            <Route index element={<AcademyHomePage />} />
+            <Route path="lessons/:slug" element={<LessonPage />} />
+            <Route path="glossary" element={<GlossaryPage />} />
+            <Route path="calculators" element={<CalculatorsPage />} />
+            <Route path="trading-lab" element={<TradingLabPage />} />
+            <Route path="metrics" element={<LearnPage />} />
+          </Route>
           <Route element={<ProtectedRoute />}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="positions" element={<PositionsPage />} />
@@ -53,7 +67,6 @@ export default function App() {
             <Route path="agent" element={<AgentPage />} />
             <Route path="news" element={<NewsPage />} />
             <Route path="research" element={<ResearchPage />} />
-            <Route path="learn" element={<LearnPage />} />
             <Route path="sectors" element={<SectorsPage />} />
             <Route path="trading" element={<TradingPage />} />
           </Route>
