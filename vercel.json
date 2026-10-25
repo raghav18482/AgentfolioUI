@@ -1,5 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://myfinancesmcp.onrender.com/api/:path*" },
     { "source": "/static/:path*", "destination": "https://myfinancesmcp.onrender.com/static/:path*" },
@@ -17,6 +19,27 @@
       "source": "/.well-known/oauth-protected-resource/:path*",
       "destination": "https://myfinancesmcp.onrender.com/.well-known/oauth-protected-resource/:path*"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/login", "destination": "/spa.html" },
+    { "source": "/login/:path*", "destination": "/spa.html" },
+    { "source": "/enroll", "destination": "/spa.html" },
+    { "source": "/enroll/:path*", "destination": "/spa.html" },
+    { "source": "/dashboard", "destination": "/spa.html" },
+    { "source": "/dashboard/:path*", "destination": "/spa.html" },
+    { "source": "/positions", "destination": "/spa.html" },
+    { "source": "/positions/:path*", "destination": "/spa.html" },
+    { "source": "/orders", "destination": "/spa.html" },
+    { "source": "/orders/:path*", "destination": "/spa.html" },
+    { "source": "/analytics", "destination": "/spa.html" },
+    { "source": "/analytics/:path*", "destination": "/spa.html" },
+    { "source": "/agent", "destination": "/spa.html" },
+    { "source": "/agent/:path*", "destination": "/spa.html" },
+    { "source": "/news", "destination": "/spa.html" },
+    { "source": "/news/:path*", "destination": "/spa.html" },
+    { "source": "/research", "destination": "/spa.html" },
+    { "source": "/research/:path*", "destination": "/spa.html" },
+    { "source": "/sectors", "destination": "/spa.html" },
+    { "source": "/sectors/:path*", "destination": "/spa.html" },
+    { "source": "/trading", "destination": "/spa.html" },
+    { "source": "/trading/:path*", "destination": "/spa.html" }
   ]
 }

@@ -7,6 +7,7 @@ import { ButtonLink } from '@/components/ui/ButtonLink'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Markdown } from '@/components/ui/Markdown'
+import { lessonOgImage, SITE_URL } from '@/seo/routes'
 import { useAcademyProgress } from '@/store/academyProgress'
 import { CALCULATORS, calculatorPath } from './calculators/ids'
 import { findLesson, findPath, findTerm, neighbours } from './content'
@@ -24,7 +25,7 @@ export function LessonPage() {
   if (!lesson) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16">
-        <PageMeta title="Lesson not found" />
+        <PageMeta title="Lesson not found" noindex />
         <EmptyState
           icon={BookOpen}
           title="We couldn’t find that lesson"
@@ -41,6 +42,25 @@ export function LessonPage() {
   return <LessonView key={lesson.slug} lesson={lesson} />
 }
 
+/** schema.org `LearningResource`, so search results can show the lesson's level and length. */
+function lessonJsonLd(lesson: Lesson) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'LearningResource',
+    name: lesson.title,
+    description: lesson.summary,
+    url: `${SITE_URL}/learn/lessons/${lesson.slug}`,
+    image: SITE_URL + lessonOgImage(lesson.slug),
+    learningResourceType: 'Lesson',
+    educationalLevel: LEVEL_LABEL[lesson.level],
+    timeRequired: `PT${lesson.minutes}M`,
+    inLanguage: 'en-IN',
+    isAccessibleForFree: true,
+    teaches: lesson.objective,
+    provider: { '@type': 'Organization', name: 'Agentfolio', url: SITE_URL },
+  }
+}
+
 function LessonView({ lesson }: { lesson: Lesson }) {
   const visitLesson = useAcademyProgress((s) => s.visitLesson)
   const done = useAcademyProgress((s) => Boolean(s.completed[lesson.slug]))
@@ -53,7 +73,12 @@ function LessonView({ lesson }: { lesson: Lesson }) {
 
   return (
     <article className="mx-auto max-w-3xl space-y-8 px-4 py-8 sm:px-6">
-      <PageMeta title={lesson.title} description={lesson.summary} />
+      <PageMeta
+        title={lesson.title}
+        description={lesson.summary}
+        image={lessonOgImage(lesson.slug)}
+        jsonLd={lessonJsonLd(lesson)}
+      />
 
       <header className="animate-fade-in space-y-3">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-surface-200/55">

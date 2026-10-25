@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, ExternalLink, Play, Settings2 } from 'lucide-react'
+import { PageMeta } from '@/components/layout/PageMeta'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { InlineCode } from '@/components/ui/InlineCode'
 import { LINKS } from '@/lib/links'
@@ -46,6 +47,10 @@ const externalLink = 'font-semibold text-brand-400 hover:text-brand-300'
 export function SetupGuidePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
+      <PageMeta
+        title="Get your Angel One SmartAPI credentials"
+        description="Step-by-step guide to generating the four Angel One SmartAPI credentials Agentfolio needs: API key, client ID, PIN and TOTP secret."
+      />
       <header className="animate-fade-in text-center">
         <span className="inline-flex rounded-full border border-brand-500/20 bg-brand-500/5 px-3 py-1 text-xs font-medium text-brand-300">
           Setup Guide

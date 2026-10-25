@@ -1,13 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { enroll, fetchAuthConfig, fetchSession, login, logout } from '@/api/auth'
+import { startedFromPrerender } from '@/lib/prerender'
 import type { PremiumStatus, Session } from '@/types'
 
 export const sessionQueryKey = ['session'] as const
+
+const ANONYMOUS: Session = { authenticated: false }
 
 /**
  * Who is signed in. The single source of truth for route guards, the nav, the
  * premium gate and the AI-key passphrase — server state, so it lives in the
  * query cache rather than a parallel client store.
+ *
+ * A prerendered page was built for an anonymous visitor, so until the server
+ * answers it reads as signed out (`isPlaceholderData`) to match that HTML.
  */
 export function useSession() {
   return useQuery({
@@ -15,6 +21,7 @@ export function useSession() {
     queryFn: fetchSession,
     staleTime: Infinity,
     retry: 1,
+    placeholderData: startedFromPrerender ? ANONYMOUS : undefined,
   })
 }
 

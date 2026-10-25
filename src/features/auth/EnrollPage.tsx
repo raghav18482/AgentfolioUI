@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle } from 'lucide-react'
 import { ApiError } from '@/api/client'
+import { PageMeta } from '@/components/layout/PageMeta'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -18,6 +19,7 @@ export function EnrollPage() {
       title="Set up your account"
       sub="Enter your four Angel One credentials once. We verify them with Angel One, encrypt them, and from then on you log in with just your WhatsApp number and an app password."
     >
+      <PageMeta title="Set up your account" noindex />
       <AuthConfigGate>{(config) => <EnrollForm config={config} />}</AuthConfigGate>
 
       <p className="mt-6 text-center text-sm text-surface-200/60">

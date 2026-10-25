@@ -36,7 +36,7 @@ function AcademyHome() {
     <div className="mx-auto max-w-[1080px] space-y-10 px-4 py-8 sm:px-6">
       <PageMeta
         title="Financial Learning Academy"
-        description="Free, practical lessons for earners: monthly surplus, emergency funds, loans and EMIs, insurance, goals, asset allocation, fund evaluation and investor behaviour. No sign-up needed."
+        description="Free personal finance lessons for Indian earners: monthly surplus, emergency funds, EMIs, insurance, goals, asset allocation and fund selection. No sign-up."
       />
       <PageHeader
         kicker="Free · no sign-up"

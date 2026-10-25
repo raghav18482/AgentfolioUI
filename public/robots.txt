@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /positions
+Disallow: /orders
+Disallow: /analytics
+Disallow: /agent
+Disallow: /news
+Disallow: /research
+Disallow: /sectors
+Disallow: /trading
+Disallow: /api/
+Disallow: /mcp/
+Disallow: /oauth/
+
+Sitemap: https://agentfolio.in/sitemap.xml

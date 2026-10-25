@@ -28,7 +28,7 @@ export function CalculatorsPage() {
   return (
     <div className="mx-auto max-w-[1080px] space-y-8 px-4 py-8 sm:px-6">
       <PageMeta
-        title={`${current.label} calculator`}
+        title={params.has('tool') ? `${current.label} calculator` : 'Financial calculators for goals, SIPs and loans'}
         description="Free goal planner, SIP vs lump-sum projection, loan prepay-vs-invest comparison and inflation calculator. Projections use your own assumptions and are hypothetical, not forecasts."
       />
       <div className="space-y-4">
