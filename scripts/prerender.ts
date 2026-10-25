@@ -5,7 +5,7 @@
  * 2. renders every public page to `dist/<path>.html` with its own head tags
  *    (served at `/<path>` by `cleanUrls` in `vercel.json`, and by `vite preview`),
  * 3. renders the not-found page to `dist/404.html` (Vercel serves it with a 404),
- * 4. keeps the empty app shell as `dist/spa.html` for client-only routes (see `vercel.json`),
+ * 4. keeps the empty app shell as `dist/spa.html` (served at `/spa`) for client-only routes (see `vercel.json`),
  * 5. writes `dist/sitemap.xml` and the share images.
  *
  * Skipped for the FastAPI build (served under `/app/`), which is not what search engines see.

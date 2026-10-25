@@ -24,10 +24,11 @@ describe('public routes', () => {
     }
   })
 
+  // `cleanUrls` serves `dist/spa.html` at `/spa`; a rewrite to `/spa.html` finds nothing and 404s.
   it('rewrites every client-only path, and its sub-paths, to the app shell', () => {
     for (const path of CLIENT_ONLY_PATHS) {
-      expect(rewrites).toContainEqual({ source: path, destination: '/spa.html' })
-      expect(rewrites).toContainEqual({ source: `${path}/:path*`, destination: '/spa.html' })
+      expect(rewrites).toContainEqual({ source: path, destination: '/spa' })
+      expect(rewrites).toContainEqual({ source: `${path}/:path*`, destination: '/spa' })
     }
   })
 
