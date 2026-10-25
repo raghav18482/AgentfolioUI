@@ -22,10 +22,12 @@ export function useTechnical(symbol: string | null) {
   })
 }
 
+export const glossaryQueryKey = ['glossary'] as const
+
 /** Fetched once per visit; the Research popovers and the Learn page share it. */
 export function useGlossary() {
   return useQuery({
-    queryKey: ['glossary'],
+    queryKey: glossaryQueryKey,
     queryFn: fetchGlossary,
     staleTime: Infinity,
   })

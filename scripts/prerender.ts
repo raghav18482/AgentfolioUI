@@ -8,6 +8,10 @@
  * 4. keeps the empty app shell as `dist/spa.html` (served at `/spa`) for client-only routes (see `vercel.json`),
  * 5. writes `dist/sitemap.xml` and the share images.
  *
+ * Pages whose content comes from the backend (the metrics guide) are rendered with
+ * data fetched here and embedded in the page; if the backend can't be reached the
+ * page is still built, showing its loading state, and the build goes on.
+ *
  * Skipped for the FastAPI build (served under `/app/`), which is not what search engines see.
  */
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -32,8 +36,11 @@ await build({
 })
 
 type HeadMeta = { title: string }
+type QuerySeed = { key: readonly unknown[]; data: unknown }
 const server = (await import(pathToFileURL(join(ssrOut, 'entry-server.js')).href)) as {
-  renderPage: (url: string) => Promise<{ html: string; meta?: HeadMeta }>
+  renderPage: (url: string, seeds?: QuerySeed[]) => Promise<{ html: string; meta?: HeadMeta }>
+  QUERY_SEED_ID: string
+  glossaryQueryKey: readonly unknown[]
   renderHeadTags: (meta: HeadMeta) => string
   prerenderedPaths: () => string[]
   lessonCards: { slug: string; title: string; minutes: number }[]
@@ -47,15 +54,40 @@ if (!META_BLOCK.test(template) || !template.includes(ROOT_DIV)) {
   throw new Error('dist/index.html is missing the page-meta block or the empty root div')
 }
 
+/** Where `vercel.json` proxies `/static`: the FastAPI backend. */
+const BACKEND = process.env.AGENTFOLIO_BACKEND || 'https://myfinancesmcp.onrender.com'
+
+/** JSON from the backend, or `undefined` (with a warning) if it can't be had; a free-tier cold start can take a minute. */
+async function fetchJson(path: string): Promise<unknown> {
+  try {
+    const res = await fetch(BACKEND + path, { signal: AbortSignal.timeout(90_000) })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (err) {
+    console.warn(`prerender: could not fetch ${BACKEND}${path} (${String(err)}); that page is built without it`)
+    return undefined
+  }
+}
+
+const glossary = await fetchJson('/static/data/metric_glossary.json')
+const SEEDS: Record<string, QuerySeed[]> = glossary ? { '/learn/metrics': [{ key: server.glossaryQueryKey, data: glossary }] } : {}
+
 function write(file: string, contents: string | Buffer) {
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, contents)
 }
 
 async function renderToFile(url: string, file: string) {
-  const { html, meta } = await server.renderPage(url)
+  const seeds = SEEDS[url] ?? []
+  const { html, meta } = await server.renderPage(url, seeds)
   if (!meta) throw new Error(`${url} rendered without <PageMeta>; every prerendered page needs one`)
-  const page = template.replace(META_BLOCK, server.renderHeadTags(meta)).replace(ROOT_DIV, `<div id="root">${html}</div>`)
+  // `<` escaped so text inside the data can never close the script element.
+  const seedTag = seeds.length
+    ? `<script id="${server.QUERY_SEED_ID}" type="application/json">${JSON.stringify(seeds).replace(/</g, '\\u003c')}</script>`
+    : ''
+  const page = template
+    .replace(META_BLOCK, server.renderHeadTags(meta))
+    .replace(ROOT_DIV, `<div id="root">${html}</div>${seedTag}`)
   write(file, page)
   console.log(`prerender: ${url} → ${file.slice(root.length + 1)}  (${meta.title})`)
 }
