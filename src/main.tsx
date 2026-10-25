@@ -1,10 +1,11 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot, hydrateRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App'
 import { onUnauthorized } from '@/api/client'
 import { sessionQueryKey } from '@/hooks/useSession'
+import { startedFromPrerender } from '@/lib/prerender'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,10 +23,16 @@ onUnauthorized(() => {
   queryClient.invalidateQueries({ queryKey: sessionQueryKey })
 })
 
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')!
+const app = (
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <App />
     </QueryClientProvider>
-  </StrictMode>,
+  </StrictMode>
 )
+
+// Public pages arrive as prerendered HTML (`scripts/prerender.ts`): adopt it
+// rather than replace it, so there is no flash while the route's code loads.
+if (startedFromPrerender) hydrateRoot(root, app)
+else createRoot(root).render(app)

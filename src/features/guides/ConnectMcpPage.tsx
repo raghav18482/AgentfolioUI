@@ -5,8 +5,10 @@ import { Card } from '@/components/ui/Card'
 import { CodeBlock } from '@/components/ui/CodeBlock'
 import { InlineCode } from '@/components/ui/InlineCode'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageMeta } from '@/components/layout/PageMeta'
 import { useCurrentUser } from '@/hooks/useSession'
 import { LINKS } from '@/lib/links'
+import { SITE_URL } from '@/seo/routes'
 import { GuideNote } from './GuideNote'
 import { GuideTable } from './GuideTable'
 import { AccessTokens, ConnectedApps } from './McpAccessPanels'
@@ -65,7 +67,8 @@ export function ConnectMcpPage() {
   const user = useCurrentUser()
   // The page and the MCP endpoint share an origin, and the browser's view of it
   // is right behind a TLS-terminating proxy, where the server's own is not.
-  const origin = window.location.origin
+  // Prerendering has no browser, so it uses the public origin.
+  const origin = typeof window === 'undefined' ? SITE_URL : window.location.origin
   const mcpUrl = `${origin}/mcp/mcp`
 
   const claudeDesktopConfig = `{
@@ -94,6 +97,10 @@ export function ConnectMcpPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
+      <PageMeta
+        title="Connect your Angel One portfolio to Claude, ChatGPT or Cursor"
+        description="Add the Agentfolio MCP server to Claude, Claude Code, Cursor or any MCP client to analyse your Angel One portfolio and market data. Read-only: it cannot place orders."
+      />
       <PageHeader
         title="Connect Agentfolio to Your AI Assistant"
         sub="Connect this MCP server to Claude, Claude Code, Cursor, or any MCP client. Your assistant can then read your Angel One portfolio and market data and help you analyse it. It is read-only: it cannot place, modify or cancel orders, and any trade idea it gives you is hypothetical."

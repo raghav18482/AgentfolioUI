@@ -18,8 +18,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react'
+import { PageMeta } from '@/components/layout/PageMeta'
 import { ButtonLink } from '@/components/ui/ButtonLink'
 import { LogoMark } from '@/components/ui/Logo'
+import { SITE_URL } from '@/seo/routes'
 import { FeedbackForm } from './FeedbackForm'
 import { LearnTeaser } from './LearnTeaser'
 
@@ -245,9 +247,35 @@ function HeroPreview() {
   )
 }
 
+const LANDING_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'Agentfolio',
+      url: SITE_URL,
+      logo: `${SITE_URL}/favicon.svg`,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: 'Agentfolio',
+      url: SITE_URL,
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
+  ],
+}
+
 export function LandingPage() {
   return (
     <div className="relative overflow-hidden">
+      <PageMeta
+        fullTitle
+        title="Agentfolio — AI portfolio tracker for Angel One, with MCP"
+        description="Track your Angel One holdings, positions and P&L in real time, get AI insights, and talk to your portfolio from Claude, ChatGPT or Cursor over MCP."
+        jsonLd={LANDING_JSON_LD}
+      />
       {/* Hero */}
       <section className="relative px-4 pt-16 pb-28 sm:pt-24 lg:pt-28 lg:pb-36">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">

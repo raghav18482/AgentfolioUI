@@ -7,9 +7,10 @@ import { useSession } from '@/hooks/useSession'
 /** Signed-in pages. Anonymous visitors go to `/login`, which sends them back here after. */
 export function ProtectedRoute() {
   const location = useLocation()
-  const { data, isPending, isError, isFetching, refetch } = useSession()
+  const { data, isPending, isPlaceholderData, isError, isFetching, refetch } = useSession()
 
-  if (isPending) return <Spinner size="lg" />
+  // A placeholder is a guess made for prerendered pages, not an answer: wait for the real one.
+  if (isPending || isPlaceholderData) return <Spinner size="lg" />
 
   if (isError) {
     return (

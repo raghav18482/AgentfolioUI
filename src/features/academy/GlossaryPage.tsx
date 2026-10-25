@@ -11,10 +11,28 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Input } from '@/components/ui/Input'
 import { useHashTarget } from '@/hooks/useHashTarget'
 import { searchTerms } from '@/lib/academy/glossarySearch'
+import { SITE_URL } from '@/seo/routes'
 import { findTerm, lessonsForTerm, TERM_CATEGORIES, TERMS } from './content'
 import type { AcademyTerm, TermCategory } from './content/types'
 import { EducationNotice } from './EducationNotice'
 import { SourceList } from './SourceList'
+
+/** schema.org `DefinedTermSet`: every term, linked to its anchor on this page. */
+const GLOSSARY_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'DefinedTermSet',
+  '@id': `${SITE_URL}/learn/glossary`,
+  name: 'Agentfolio financial glossary',
+  url: `${SITE_URL}/learn/glossary`,
+  hasDefinedTerm: TERMS.map((t) => ({
+    '@type': 'DefinedTerm',
+    '@id': `${SITE_URL}/learn/glossary#${t.id}`,
+    name: t.term,
+    description: t.definition,
+    ...(t.aka ? { alternateName: t.aka } : {}),
+    inDefinedTermSet: `${SITE_URL}/learn/glossary`,
+  })),
+}
 
 function categoryFrom(raw: string | null): TermCategory | null {
   return TERM_CATEGORIES.find((c) => c === raw) ?? null
@@ -50,7 +68,8 @@ export function GlossaryPage() {
     <div className="mx-auto max-w-[1080px] space-y-8 px-4 py-8 sm:px-6">
       <PageMeta
         title="Financial glossary"
-        description="Personal finance and investing terms for earners — take-home pay, EMIs, prepayment, liquid funds, XIRR, TRI, expense ratios, SIFs and more — each with a worked example."
+        description="Personal finance and investing terms explained with worked examples: take-home pay, EMIs, prepayment, liquid funds, XIRR, TRI, expense ratios and more."
+        jsonLd={GLOSSARY_JSON_LD}
       />
       <div className="space-y-4">
         <Link to="/learn" className="inline-flex items-center gap-1.5 text-sm text-brand-400 hover:text-brand-300">

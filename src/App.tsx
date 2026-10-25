@@ -38,41 +38,48 @@ const NotFoundPage = page(() => import('@/features/errors/NotFoundPage'), 'NotFo
 /** `/app/` in production (served by FastAPI), `/` under the dev server. */
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/'
 
+/** The route tree, shared by the browser router here and the static one in `entry-server.tsx`. */
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route element={<GuestOnlyRoute />}>
+          <Route index element={<LandingPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="enroll" element={<EnrollPage />} />
+        </Route>
+        <Route path="setup" element={<SetupGuidePage />} />
+        <Route path="connect" element={<ConnectMcpPage />} />
+        {/* The Financial Learning Academy is public: no account needed to learn. */}
+        <Route path="learn">
+          <Route index element={<AcademyHomePage />} />
+          <Route path="lessons/:slug" element={<LessonPage />} />
+          <Route path="glossary" element={<GlossaryPage />} />
+          <Route path="calculators" element={<CalculatorsPage />} />
+          <Route path="trading-lab" element={<TradingLabPage />} />
+          <Route path="metrics" element={<LearnPage />} />
+        </Route>
+        <Route element={<ProtectedRoute />}>
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="positions" element={<PositionsPage />} />
+          <Route path="orders" element={<OrdersPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="agent" element={<AgentPage />} />
+          <Route path="news" element={<NewsPage />} />
+          <Route path="research" element={<ResearchPage />} />
+          <Route path="sectors" element={<SectorsPage />} />
+          <Route path="trading" element={<TradingPage />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter basename={basename}>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route element={<GuestOnlyRoute />}>
-            <Route index element={<LandingPage />} />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="enroll" element={<EnrollPage />} />
-          </Route>
-          <Route path="setup" element={<SetupGuidePage />} />
-          <Route path="connect" element={<ConnectMcpPage />} />
-          {/* The Financial Learning Academy is public: no account needed to learn. */}
-          <Route path="learn">
-            <Route index element={<AcademyHomePage />} />
-            <Route path="lessons/:slug" element={<LessonPage />} />
-            <Route path="glossary" element={<GlossaryPage />} />
-            <Route path="calculators" element={<CalculatorsPage />} />
-            <Route path="trading-lab" element={<TradingLabPage />} />
-            <Route path="metrics" element={<LearnPage />} />
-          </Route>
-          <Route element={<ProtectedRoute />}>
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="positions" element={<PositionsPage />} />
-            <Route path="orders" element={<OrdersPage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="agent" element={<AgentPage />} />
-            <Route path="news" element={<NewsPage />} />
-            <Route path="research" element={<ResearchPage />} />
-            <Route path="sectors" element={<SectorsPage />} />
-            <Route path="trading" element={<TradingPage />} />
-          </Route>
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   )
 }

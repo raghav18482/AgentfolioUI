@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ShieldCheck } from 'lucide-react'
 import { ApiError } from '@/api/client'
+import { PageMeta } from '@/components/layout/PageMeta'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -18,6 +19,7 @@ export function LoginPage() {
       title="Log in"
       sub="Your Angel One credentials are already stored, encrypted. Just your number and app password."
     >
+      <PageMeta title="Log in" noindex />
       <AuthConfigGate>{(config) => <LoginForm config={config} />}</AuthConfigGate>
 
       <p className="mt-6 text-center text-sm text-surface-200/60">
