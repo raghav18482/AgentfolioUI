@@ -1,15 +1,23 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { MessageCircle } from 'lucide-react'
 import { clsx } from 'clsx'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { sendFeedback } from '@/api/feedback'
+import { fetchFeedbackMode, sendFeedback } from '@/api/feedback'
 
 const MAX_FEEDBACK_CHARS = 1000
 
-/** Public feedback → AI-written reply on the sender's WhatsApp. Mirrors the Jinja landing form. */
+/**
+ * Public feedback. Mirrors the Jinja landing form.
+ *
+ * The server answers on WhatsApp only when its reply mode is switched on.
+ * Until it says so (including in the prerendered HTML, and if the question
+ * fails), the form asks for feedback alone and never for a phone number.
+ */
 export function FeedbackForm() {
+  const mode = useQuery({ queryKey: ['feedback-mode'], queryFn: fetchFeedbackMode, staleTime: Infinity, retry: 1 })
+  const replyOn = mode.data === true
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [feedback, setFeedback] = useState('')
@@ -28,7 +36,7 @@ export function FeedbackForm() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!feedback.trim()) return setFormError('Please enter your feedback.')
-    if (!phone.trim()) return setFormError('Please enter your WhatsApp number.')
+    if (replyOn && !phone.trim()) return setFormError('Please enter your WhatsApp number.')
     setFormError(null)
     send.mutate({ name: name.trim(), phone: phone.trim(), feedback: feedback.trim(), website })
   }
@@ -47,14 +55,20 @@ export function FeedbackForm() {
               See the AI live
             </div>
             <h2 id="feedback-title" className="font-display text-3xl font-bold text-white sm:text-4xl">
-              Tell us what you think.{' '}
-              <span className="bg-gradient-to-r from-emerald-400 to-brand-400 bg-clip-text text-transparent">
-                Get a reply on WhatsApp.
-              </span>
+              Tell us what you think.
+              {replyOn && (
+                <>
+                  {' '}
+                  <span className="bg-gradient-to-r from-emerald-400 to-brand-400 bg-clip-text text-transparent">
+                    Get a reply on WhatsApp.
+                  </span>
+                </>
+              )}
             </h2>
             <p className="mt-4 text-surface-200/60 text-lg max-w-xl mx-auto">
-              Drop your feedback below and our AI will craft a personal response and send it
-              straight to your WhatsApp — a quick taste of the assistant that powers Agentfolio.
+              {replyOn
+                ? 'Drop your feedback below and our AI will craft a personal response and send it straight to your WhatsApp — a quick taste of the assistant that powers Agentfolio.'
+                : "What do you love, what's missing, what should we build next? We read every message."}
             </p>
           </div>
 
@@ -72,26 +86,28 @@ export function FeedbackForm() {
                 />
               </label>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Name (optional)"
-                maxLength={80}
-                placeholder="Your name"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <Input
-                label="WhatsApp number"
-                type="tel"
-                inputMode="tel"
-                required
-                placeholder="e.g. +91 81070 37133"
-                autoComplete="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
+            {replyOn && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  label="Name (optional)"
+                  maxLength={80}
+                  placeholder="Your name"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <Input
+                  label="WhatsApp number"
+                  type="tel"
+                  inputMode="tel"
+                  required
+                  placeholder="e.g. +91 00000 00000"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+            )}
             <div>
               <label htmlFor="fb-message" className="mb-1.5 block text-sm font-medium text-surface-200/80">
                 Your feedback
@@ -122,9 +138,11 @@ export function FeedbackForm() {
                 {status}
               </p>
             </div>
-            <p className="text-xs text-surface-200/40">
-              We use your number only to send this one reply. Standard WhatsApp messaging applies.
-            </p>
+            {replyOn && (
+              <p className="text-xs text-surface-200/40">
+                We use your number only to send this one reply. Standard WhatsApp messaging applies.
+              </p>
+            )}
           </form>
         </div>
       </div>
