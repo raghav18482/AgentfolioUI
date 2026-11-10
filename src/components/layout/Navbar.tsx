@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useLogout, useSession } from '@/hooks/useSession'
 import { Logo } from '@/components/ui/Logo'
+import { homePath, isBrokerageConnected } from '@/lib/brokerage'
 
 interface NavItem {
   path: string
@@ -40,6 +41,12 @@ const appNav: NavItem[] = [
   { path: '/positions', label: 'Positions', icon: ArrowLeftRight },
   { path: '/orders', label: 'Orders', icon: ClipboardList },
   { path: '/agent', label: 'Agent', icon: Bot },
+]
+
+/** Signed in, no broker yet: what they can open, plus how to unlock the rest. */
+const learnerNav: NavItem[] = [
+  { path: '/learn', label: 'Learn', icon: GraduationCap },
+  { path: '/setup', label: 'Setup Guide', icon: BookOpen },
 ]
 
 const publicNav: NavItem[] = [
@@ -72,7 +79,12 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const authenticated = session?.authenticated === true
-  const items = authenticated ? appNav : publicNav
+  const connected = isBrokerageConnected(session)
+  const items = connected ? appNav : authenticated ? learnerNav : publicNav
+  // Learners are pointed at connecting; connected users reach the same page to manage it.
+  const brokerageLink = authenticated
+    ? { label: connected ? 'Brokerage' : 'Connect brokerage', primary: !connected }
+    : null
 
   function handleLogout() {
     setMobileOpen(false)
@@ -85,7 +97,7 @@ export function Navbar() {
       className="sticky top-0 z-50 border-b border-surface-800/80 bg-surface-950/80 backdrop-blur-xl"
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link to={authenticated ? '/dashboard' : '/'} className="shrink-0" aria-label="Agentfolio home">
+        <Link to={authenticated ? homePath(session) : '/'} className="shrink-0" aria-label="Agentfolio home">
           <Logo />
         </Link>
 
@@ -103,6 +115,19 @@ export function Navbar() {
             </div>
 
             <div className="hidden shrink-0 items-center gap-3 xl:flex">
+              {brokerageLink && (
+                <NavLink
+                  to="/connect-brokerage"
+                  className={({ isActive }) =>
+                    brokerageLink.primary
+                      ? 'flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-500'
+                      : desktopLinkClass({ isActive })
+                  }
+                >
+                  <Plug className="h-4 w-4" aria-hidden />
+                  {brokerageLink.label}
+                </NavLink>
+              )}
               {authenticated ? (
                 <button
                   type="button"
@@ -148,6 +173,12 @@ export function Navbar() {
               {label}
             </NavLink>
           ))}
+          {brokerageLink && (
+            <NavLink to="/connect-brokerage" onClick={() => setMobileOpen(false)} className={mobileLinkClass}>
+              <Plug className="h-4 w-4" aria-hidden />
+              {brokerageLink.label}
+            </NavLink>
+          )}
           {authenticated ? (
             <button
               type="button"

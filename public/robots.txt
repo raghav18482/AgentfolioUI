@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /connect-brokerage
 Disallow: /dashboard
 Disallow: /positions
 Disallow: /orders

@@ -12,7 +12,7 @@ import '@fontsource/space-grotesk/600.css'
 import '@fontsource/space-grotesk/700.css'
 import './index.css'
 import App from './App'
-import { onUnauthorized } from '@/api/client'
+import { onBrokerageRequired, onUnauthorized } from '@/api/client'
 import { sessionQueryKey } from '@/hooks/useSession'
 import { QUERY_SEED_ID, startedFromPrerender, type QuerySeed } from '@/lib/prerender'
 
@@ -29,6 +29,13 @@ const queryClient = new QueryClient({
 // A signed-in request answered 401 means the session ended mid-visit. Re-ask the
 // server who we are; the route guard sends an anonymous answer to /login.
 onUnauthorized(() => {
+  queryClient.invalidateQueries({ queryKey: sessionQueryKey })
+})
+
+// A 403 for want of a broker means the link was disconnected or expired
+// mid-visit. The user is still signed in: re-read the session and the
+// brokerage guard sends them to reconnect.
+onBrokerageRequired(() => {
   queryClient.invalidateQueries({ queryKey: sessionQueryKey })
 })
 

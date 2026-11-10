@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { BrokerageRoute } from '@/components/auth/BrokerageRoute'
 import { GuestOnlyRoute } from '@/components/auth/GuestOnlyRoute'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { LandingPage } from '@/features/landing/LandingPage'
@@ -16,6 +17,10 @@ function page<K extends string>(load: () => Promise<Record<K, ComponentType>>, n
 }
 
 const EnrollPage = page(() => import('@/features/auth/EnrollPage'), 'EnrollPage')
+const ConnectBrokeragePage = page(
+  () => import('@/features/brokerage/ConnectBrokeragePage'),
+  'ConnectBrokeragePage',
+)
 const SetupGuidePage = page(() => import('@/features/guides/SetupGuidePage'), 'SetupGuidePage')
 const ConnectMcpPage = page(() => import('@/features/guides/ConnectMcpPage'), 'ConnectMcpPage')
 const DashboardPage = page(() => import('@/features/dashboard/DashboardPage'), 'DashboardPage')
@@ -60,15 +65,19 @@ export function AppRoutes() {
           <Route path="metrics" element={<LearnPage />} />
         </Route>
         <Route element={<ProtectedRoute />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="positions" element={<PositionsPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="analytics" element={<AnalyticsPage />} />
-          <Route path="agent" element={<AgentPage />} />
-          <Route path="news" element={<NewsPage />} />
-          <Route path="research" element={<ResearchPage />} />
-          <Route path="sectors" element={<SectorsPage />} />
-          <Route path="trading" element={<TradingPage />} />
+          <Route path="connect-brokerage" element={<ConnectBrokeragePage />} />
+          {/* Everything that reads the Angel One account needs it connected. */}
+          <Route element={<BrokerageRoute />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="positions" element={<PositionsPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="agent" element={<AgentPage />} />
+            <Route path="news" element={<NewsPage />} />
+            <Route path="research" element={<ResearchPage />} />
+            <Route path="sectors" element={<SectorsPage />} />
+            <Route path="trading" element={<TradingPage />} />
+          </Route>
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
