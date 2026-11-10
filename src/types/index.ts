@@ -5,10 +5,28 @@ export interface PremiumStatus {
   whatsapp_number: string | null
 }
 
+/**
+ * Where the user's Angel One link stands. Only `connected` unlocks brokerage
+ * pages; `expired`, `failed` and `disconnected` mean "reconnect".
+ */
+export type BrokerageStatus = 'not_connected' | 'pending' | 'connected' | 'expired' | 'disconnected' | 'failed'
+
+/** What a signed-in user may open. `learning` always; `brokerage` once connected. */
+export type Feature = 'learning' | 'brokerage'
+
+/** Who is signed in, as login, registration and the bootstrap all report it. */
+export interface Account {
+  user_id: number
+  phone_number: string | null
+  whatsapp_number: string | null
+  /** The Angel One client code, only while connected. */
+  client_id: string | null
+  brokerage_status: BrokerageStatus
+  available_features: Feature[]
+}
+
 /** `GET /api/session/bootstrap`. Anonymous is an answer, not an error. */
-export type Session =
-  | { authenticated: false }
-  | { authenticated: true; client_id: string; premium: PremiumStatus }
+export type Session = { authenticated: false } | ({ authenticated: true; premium: PremiumStatus } & Account)
 
 export interface CountryOption {
   iso: string
@@ -37,15 +55,27 @@ export interface LoginPayload {
   app_password: string
 }
 
-export interface EnrollPayload {
-  api_key: string
+/** The four Angel One values. `password` is the trading PIN; `totp_secret` the base32 secret. */
+export interface BrokerCredentials {
   client_id: string
+  api_key: string
   password: string
   totp_secret: string
+}
+
+/** Registration. The broker fields are all sent or all omitted (connect later). */
+export type EnrollPayload = {
   country_code: string
   whatsapp_number: string
   app_password: string
   app_password_confirm: string
+} & Partial<BrokerCredentials>
+
+/** `GET /api/brokerage/status`. Never carries a credential. */
+export interface BrokerageStatusInfo {
+  brokerage_status: BrokerageStatus
+  is_connected: boolean
+  provider: 'angel_one' | null
 }
 
 // --- AI ---

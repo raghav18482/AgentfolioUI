@@ -1,5 +1,5 @@
 import api from './client'
-import type { AuthConfig, EnrollPayload, LoginPayload, Session } from '@/types'
+import type { Account, AuthConfig, EnrollPayload, LoginPayload, Session } from '@/types'
 
 export async function fetchSession(): Promise<Session> {
   const { data } = await api.get<Session>('/api/session/bootstrap')
@@ -11,13 +11,16 @@ export async function fetchAuthConfig(): Promise<AuthConfig> {
   return data
 }
 
-export async function login(payload: LoginPayload): Promise<{ client_id: string }> {
-  const { data } = await api.post<{ ok: true; client_id: string }>('/api/auth/login', payload)
+type SignedIn = Account & { ok: true }
+
+export async function login(payload: LoginPayload): Promise<SignedIn> {
+  const { data } = await api.post<SignedIn>('/api/auth/login', payload)
   return data
 }
 
-export async function enroll(payload: EnrollPayload): Promise<{ client_id: string }> {
-  const { data } = await api.post<{ ok: true; client_id: string }>('/api/auth/enroll', payload)
+/** Registration. Broker fields are optional, all or none; without them the account starts at `not_connected`. */
+export async function enroll(payload: EnrollPayload): Promise<SignedIn> {
+  const { data } = await api.post<SignedIn>('/api/auth/enroll', payload)
   return data
 }
 

@@ -10,16 +10,20 @@ import axios, { type AxiosError } from 'axios'
 export class ApiError extends Error {
   readonly status: number
   readonly field?: string
+  /** Machine-readable reason, when the server gives one (e.g. `brokerage_not_connected`). */
+  readonly code?: string
 
-  constructor(message: string, status: number, field?: string) {
+  constructor(message: string, status: number, field?: string, code?: string) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.field = field
+    this.code = code
   }
 }
 
 let unauthorizedHandler: (() => void) | null = null
+let brokerageHandler: (() => void) | null = null
 
 /**
  * Register what happens when a signed-in request comes back 401 — the session
@@ -29,13 +33,23 @@ export function onUnauthorized(handler: () => void): void {
   unauthorizedHandler = handler
 }
 
+/**
+ * Register what happens when a request is refused for want of a working broker
+ * link (403 `brokerage_*`) — it was disconnected or expired mid-visit. Unlike a
+ * 401 the user is still signed in; the session just needs re-reading so the
+ * brokerage guard can send them to reconnect.
+ */
+export function onBrokerageRequired(handler: () => void): void {
+  brokerageHandler = handler
+}
+
 const api = axios.create({
   baseURL: '',
   withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 
-type ErrorBody = { error?: unknown; detail?: unknown; field?: unknown }
+type ErrorBody = { error?: unknown; detail?: unknown; field?: unknown; code?: unknown }
 
 function messageFrom(body: ErrorBody | undefined, status: number): string {
   if (body && typeof body.error === 'string' && body.error) return body.error
@@ -51,7 +65,9 @@ api.interceptors.response.use(
     // A 401 from /api/auth/* is a wrong password, not an expired session.
     if (status === 401 && !err.config?.url?.startsWith('/api/auth/')) unauthorizedHandler?.()
     const field = body && typeof body.field === 'string' ? body.field : undefined
-    return Promise.reject(new ApiError(messageFrom(body, status), status, field))
+    const code = body && typeof body.code === 'string' ? body.code : undefined
+    if (status === 403 && code?.startsWith('brokerage_')) brokerageHandler?.()
+    return Promise.reject(new ApiError(messageFrom(body, status), status, field, code))
   },
 )
 

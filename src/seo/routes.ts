@@ -37,6 +37,7 @@ export function prerenderedPaths(): string[] {
 export const CLIENT_ONLY_PATHS = [
   '/login',
   '/enroll',
+  '/connect-brokerage',
   '/dashboard',
   '/positions',
   '/orders',

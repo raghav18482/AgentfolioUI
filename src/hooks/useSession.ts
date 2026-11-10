@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { enroll, fetchAuthConfig, fetchSession, login, logout } from '@/api/auth'
 import { startedFromPrerender } from '@/lib/prerender'
-import type { PremiumStatus, Session } from '@/types'
+import type { BrokerageStatus, PremiumStatus, Session } from '@/types'
 
 export const sessionQueryKey = ['session'] as const
 
@@ -25,10 +25,19 @@ export function useSession() {
   })
 }
 
+export interface CurrentUser {
+  /** The Angel One client code; `null` until a broker is connected. */
+  clientId: string | null
+  brokerageStatus: BrokerageStatus
+  premium: PremiumStatus
+}
+
 /** The signed-in user, or `null` while anonymous or still loading. */
-export function useCurrentUser(): { clientId: string; premium: PremiumStatus } | null {
+export function useCurrentUser(): CurrentUser | null {
   const { data } = useSession()
-  return data?.authenticated ? { clientId: data.client_id, premium: data.premium } : null
+  return data?.authenticated
+    ? { clientId: data.client_id, brokerageStatus: data.brokerage_status, premium: data.premium }
+    : null
 }
 
 /** Countries, default dial code and password rule. Static for the server's lifetime. */

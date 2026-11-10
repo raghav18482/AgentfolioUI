@@ -31,6 +31,8 @@
     { "source": "/login/:path*", "destination": "/spa" },
     { "source": "/enroll", "destination": "/spa" },
     { "source": "/enroll/:path*", "destination": "/spa" },
+    { "source": "/connect-brokerage", "destination": "/spa" },
+    { "source": "/connect-brokerage/:path*", "destination": "/spa" },
     { "source": "/dashboard", "destination": "/spa" },
     { "source": "/dashboard/:path*", "destination": "/spa" },
     { "source": "/positions", "destination": "/spa" },
